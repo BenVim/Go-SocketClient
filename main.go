@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"reflect"
+	"bufio"
 )
 
 func copyBuffer(dst io.Writer, src io.Reader, buf []byte) (written int64, err error) {
@@ -68,7 +69,7 @@ func main() {
 	fmt.Println("conn.LocalAddr() 所对应的数据类型是", reflect.TypeOf(conn.LocalAddr().String()))
 	fmt.Println("conn.RemoteAddr().String() 所对应的数据类型是", reflect.TypeOf(conn.RemoteAddr().String()))
 
-	n, err := conn.Write([]byte("abc\n"))
+	n, err := conn.Write([]byte("It avoids these problems of duplication and fission.\n"))
 
 	if err != nil {
 		log.Fatal(err)
@@ -76,15 +77,20 @@ func main() {
 
 	fmt.Println("向服务端发送的数据大小是：", n)
 
-	buf := make([]byte, 1024) //定义一个切片的长度是1024.
 
-	n, err = conn.Read(buf) // 接收到的内容大小
 
-	if err != nil && err != io.EOF {
-		log.Fatal(err)
+	r :=bufio.NewReader(conn)
+	for{
+		line, err := r.ReadString('\n')
+		if err == io.EOF {
+			conn.Close()
+		}
+		fmt.Print(line)
 	}
 
-	fmt.Println(string(buf[:n])) //将接受的内容都读取出来
+
+
+	//fmt.Println(string(buf[:n])) //将接受的内容都读取出来
 	conn.Close()                 // 断开TCP
 
 }
